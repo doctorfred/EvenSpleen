@@ -5,6 +5,7 @@
 package frc.robot;
 
 import java.lang.ModuleLayer.Controller;
+import java.time.Instant;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -51,7 +52,7 @@ public class RobotContainer {
     
     DRIVE_SUBSYSTEM.setDefaultCommand( new RunCommand(()-> DRIVE_SUBSYSTEM.drive(
       inputScaler(CONTROLLER.getRawAxis(1),0.7), 
-      inputScaler(-CONTROLLER.getRawAxis(0),0.7)), 
+      inputScaler(-CONTROLLER.getRawAxis(2),0.7)), 
       DRIVE_SUBSYSTEM ) );
     intakeMotor.setInverted(false);
     shooterMotor.setInverted(true);
@@ -94,12 +95,26 @@ public class RobotContainer {
     b.whenPressed(new InstantCommand(() -> climberMotor.set(-1))).whenReleased(new InstantCommand(() -> climberMotor.set(0)));
 
     //Intake 
-    JoystickButton c = new JoystickButton(CONTROLLER,5);
+    JoystickButton c = new JoystickButton(CONTROLLER,8);
     c.whenPressed(new InstantCommand(() -> intakeMotor.set(1))).whenReleased(new InstantCommand(() -> intakeMotor.set(0)));
 
 //outtake
-    JoystickButton e = new JoystickButton(CONTROLLER,8);
+    JoystickButton e = new JoystickButton(CONTROLLER,5);
     e.whenPressed(new InstantCommand(() -> intakeMotor.set(-1))).whenReleased(new InstantCommand(() -> intakeMotor.set(0)));
+
+    //auto
+    JoystickButton f = new JoystickButton(CONTROLLER,7);
+    //f.whenPressed(new RunCommand(() -> DRIVE_SUBSYSTEM.drive(-1,0)).withTimeout(3));
+    f.whenPressed(new InstantCommand(() -> DRIVE_SUBSYSTEM.drive(-1, 0))
+    .andThen(new InstantCommand(() -> DRIVE_SUBSYSTEM.drive(-1, 0)))
+    .andThen(new InstantCommand(() -> DRIVE_SUBSYSTEM.drive(-1, 0)))
+    .andThen(new InstantCommand(() -> DRIVE_SUBSYSTEM.drive(-1, 0)))
+    .andThen(new InstantCommand(() -> DRIVE_SUBSYSTEM.drive(-1, 0)))
+    .andThen(new InstantCommand(() -> DRIVE_SUBSYSTEM.drive(-1, 0)))
+    .andThen(new InstantCommand(() -> DRIVE_SUBSYSTEM.drive(-1, 0)))
+    .andThen(new InstantCommand(() -> DRIVE_SUBSYSTEM.drive(-1, 0)))
+    .andThen(new InstantCommand(() -> DRIVE_SUBSYSTEM.drive(-1, 0)))
+    .andThen(new InstantCommand(() -> DRIVE_SUBSYSTEM.drive(-1, 0))));
 
     //Shoot
     JoystickButton d = new JoystickButton(CONTROLLER,4);
