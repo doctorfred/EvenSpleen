@@ -6,6 +6,7 @@ package frc.robot;
 
 import java.lang.ModuleLayer.Controller;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Joystick;
@@ -27,7 +28,8 @@ import frc.robot.subsystems.DriveSubsystem;
 public class RobotContainer {
 
   private DriveSubsystem DRIVE_SUBSYSTEM=new DriveSubsystem();
-  private Joystick CONTROLLER=new Joystick(0);
+  //private Joystick CONTROLLER=new Joystick(0);
+  private XboxController CONTROLLER = new XboxController(0);
   private Spark climberMotor = new Spark(3);
   private Spark intakeMotor = new Spark(5);
   private Spark shooterMotor = new Spark(6);
@@ -40,9 +42,40 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the button bindings
     configureButtonBindings();
-    DRIVE_SUBSYSTEM.setDefaultCommand( new RunCommand(()-> DRIVE_SUBSYSTEM.drive(CONTROLLER.getRawAxis(1), -CONTROLLER.getRawAxis(0)), DRIVE_SUBSYSTEM ) );
-    intakeMotor.setInverted(true);
+
+    //twostick
+/*    DRIVE_SUBSYSTEM.setDefaultCommand( new RunCommand(()-> DRIVE_SUBSYSTEM.drive(
+      inputScaler(CONTROLLER.getRawAxis(1),0.8), 
+      inputScaler(-CONTROLLER.getRawAxis(2),0.8)), 
+      DRIVE_SUBSYSTEM ) ); */
+    
+    DRIVE_SUBSYSTEM.setDefaultCommand( new RunCommand(()-> DRIVE_SUBSYSTEM.drive(
+      inputScaler(CONTROLLER.getRawAxis(1),0.7), 
+      inputScaler(-CONTROLLER.getRawAxis(0),0.7)), 
+      DRIVE_SUBSYSTEM ) );
+    intakeMotor.setInverted(false);
     shooterMotor.setInverted(true);
+    shooterServo.set(0);
+  }
+
+  private double inputScaler(double input, double baseline) {
+    double scaledInput;
+
+    if(Math.abs(input) < 0.1) return 0;
+
+    if(input<0) { 
+      scaledInput=(input*(1-baseline)) - baseline;
+      //scaledInput=-scaledInput*scaledInput;
+    }
+    else { 
+      scaledInput=(input*(1-baseline)) + baseline; 
+      //scaledInput=scaledInput*scaledInput;
+    }
+
+    //round it.
+    scaledInput=Math.round(scaledInput*20) / 20.0;
+
+    return scaledInput;
   }
 
   /**
@@ -60,16 +93,24 @@ public class RobotContainer {
     JoystickButton b = new JoystickButton(CONTROLLER,2);
     b.whenPressed(new InstantCommand(() -> climberMotor.set(-1))).whenReleased(new InstantCommand(() -> climberMotor.set(0)));
 
-    JoystickButton c = new JoystickButton(CONTROLLER,3);
+    //Intake 
+    JoystickButton c = new JoystickButton(CONTROLLER,5);
     c.whenPressed(new InstantCommand(() -> intakeMotor.set(1))).whenReleased(new InstantCommand(() -> intakeMotor.set(0)));
+
+//outtake
+    JoystickButton e = new JoystickButton(CONTROLLER,8);
+    e.whenPressed(new InstantCommand(() -> intakeMotor.set(-1))).whenReleased(new InstantCommand(() -> intakeMotor.set(0)));
 
     //Shoot
     JoystickButton d = new JoystickButton(CONTROLLER,4);
-    d.whenPressed(new InstantCommand(() -> shooterMotor.set(.75))
-          .andThen(new WaitCommand(1))
-          .andThen(new InstantCommand(() -> shooterServo.set(90))))
-      .whenReleased(new InstantCommand(() -> shooterMotor.set(0))
-          .andThen(new InstantCommand(() -> shooterServo.set(0))));
+    d.whenPressed(new InstantCommand(() -> shooterMotor.set(1))
+          .andThen(new WaitCommand(1.2))
+          .andThen(new InstantCommand(() -> shooterServo.set(90)))
+          .andThen(new WaitCommand(.5))
+          .andThen(new InstantCommand(() -> shooterServo.set(0)))
+          .andThen(new InstantCommand(() -> shooterMotor.set(0))));
+//      .whenReleased(new InstantCommand(() -> shooterMotor.set(0))
+//          .andThen(new InstantCommand(() -> shooterServo.set(0))));
   }
 
   /**

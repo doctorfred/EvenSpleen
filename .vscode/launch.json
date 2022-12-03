@@ -6,6 +6,7 @@
   "configurations": [
 
     {
+      "preLaunchTask": "ws proxy",
       "type": "wpilib",
       "name": "WPILib Desktop Debug",
       "request": "launch",
